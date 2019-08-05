@@ -11,15 +11,6 @@ import pandas as pd
 from sklearn.utils import shuffle
 from PIL import Image
 
-SEED=510
-df_train = pd.read_csv('/data/wen/data/aptos/train.csv')
-df_test = pd.read_csv('/data/wen/data/aptos/test.csv')
-x = df_train['id_code']
-y = df_train['diagnosis']
-x, y = shuffle(x, y,random_state=SEED)
-img_states=[[0.485,0.456,0.406],[0.229,0.224,0.225]]
-train_x, valid_x, train_y, valid_y = train_test_split(x.values, y.values, test_size=0.10, stratify=y, random_state=SEED)
-test_x = df_test.id_code.values
 
 def crop_image_from_gray(image,tol=7):
 	if image.ndim==2:
@@ -50,13 +41,14 @@ def load_ben_color(path,sigmax=10):
 	return image
 
 class ImageDataset(torch.utils.data.Dataset):
-	def __init__(self,root,path_list,target=None,transform=None,extension='.png'):
+	def __init__(self,root,path_list,target=None,transform=None,extension='.png',with_id=False):
 		super(ImageDataset,self).__init__()
 		self.root=root
 		self.path_list=path_list
 		self.target=target
 		self.transform=transform
 		self.extension=extension
+		self.with_id=with_id
 		if self.target is not None:
 			assert  len(self.path_list)==len(self.target)
 			self.target=torch.LongTensor(target)
@@ -68,11 +60,24 @@ class ImageDataset(torch.utils.data.Dataset):
 			sample=self.transform(sample)
 		if self.target is not None:
 			return sample,self.target[index]
+		elif self.with_id:
+			return sample,torch.LongTensor([]),self.path_list[index]
 		else:
 			return sample,torch.LongTensor([])
 	def __len__(self):
 		return len(self.path_list)
 
+
+
+SEED=510
+df_train = pd.read_csv('/data/wen/data/aptos/train.csv')
+df_test = pd.read_csv('/data/wen/data/aptos/test.csv')
+x = df_train['id_code']
+y = df_train['diagnosis']
+x, y = shuffle(x, y,random_state=SEED)
+img_states=[[0.485,0.456,0.406],[0.229,0.224,0.225]]
+train_x, valid_x, train_y, valid_y = train_test_split(x.values, y.values, test_size=0.10, stratify=y, random_state=SEED)
+test_x = df_test.id_code.values
 
 
 train_transform=Compose([
@@ -96,9 +101,9 @@ test_transform=Compose([
 def get_data():
 	train_set=ImageDataset(root='/data/wen/data/aptos/train_images/',path_list=train_x,target=train_y,transform=train_transform)
 	train_eval_set=ImageDataset(root='/data/wen/data/aptos/train_images/',path_list=valid_x,target=valid_y,transform=test_transform)
-	test_set=ImageDataset(root='/data/wen/data/aptos/test_images/',path_list=test_x,transform=test_transform)
-	train_batch_size=4
-	eval_batch_size=4
+	test_set=ImageDataset(root='/data/wen/data/aptos/test_images/',path_list=test_x,transform=test_transform,with_id=True)
+	train_batch_size=64
+	eval_batch_size=64
 	num_workers=os.cpu_count()
 	train_loader=data.DataLoader(train_set,batch_size=train_batch_size,num_workers=num_workers,shuffle=True,drop_last=True,pin_memory=True)
 	eval_loader=data.DataLoader(train_eval_set,batch_size=eval_batch_size,num_workers=num_workers,shuffle=False,drop_last=False,pin_memory=True)
