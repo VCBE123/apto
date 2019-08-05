@@ -1,7 +1,8 @@
 from torchvision.transforms import Compose,RandomResizedCrop,RandomHorizontalFlip, RandomAffine,Resize,CenterCrop
 import numpy as np
 import cv2
-from torch.utils.data import DataLoader
+
+import torch.utils.data as data
 import os
 import torch
 from torchvision.transforms import ToTensor, Normalize
@@ -96,12 +97,12 @@ def get_data():
 	train_set=ImageDataset(root='/data/wen/data/aptos/train_images/',path_list=train_x,target=train_y,transform=train_transform)
 	train_eval_set=ImageDataset(root='/data/wen/data/aptos/train_images/',path_list=valid_x,target=valid_y,transform=test_transform)
 	test_set=ImageDataset(root='/data/wen/data/aptos/test_images/',path_list=test_x,transform=test_transform)
-	train_batch_size=32
-	eval_batch_size=16
+	train_batch_size=4
+	eval_batch_size=4
 	num_workers=os.cpu_count()
-	train_loader=DataLoader(train_set,batch_size=train_batch_size,num_workers=num_workers,shuffle=True,drop_last=True,pin_memory=True)
-	eval_loader=DataLoader(train_eval_set,batch_size=eval_batch_size,num_workers=num_workers,shuffle=False,drop_last=False,pin_memory=True)
-	test_loader=DataLoader(test_set,batch_size=eval_batch_size,num_workers=num_workers,shuffle=False,drop_last=False,pin_memory=True)
+	train_loader=data.DataLoader(train_set,batch_size=train_batch_size,num_workers=num_workers,shuffle=True,drop_last=True,pin_memory=True)
+	eval_loader=data.DataLoader(train_eval_set,batch_size=eval_batch_size,num_workers=num_workers,shuffle=False,drop_last=False,pin_memory=True)
+	test_loader=data.DataLoader(test_set,batch_size=eval_batch_size,num_workers=num_workers,shuffle=False,drop_last=False,pin_memory=True)
 	return  train_loader,eval_loader,test_loader
 
 
