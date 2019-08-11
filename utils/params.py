@@ -25,10 +25,19 @@ url_map = {
 
 
 def load_pretrained_weights(model, model_name):
-	model_state= torch.load('/home/wen/efficientnet-b4-e116e8b3.pth')
+	# model_state= torch.load('/home/wen/efficientnet-b4-e116e8b3.pth')
+	model_state= torch.load('/home/wen/efficientnet-b3-c8376fa2.pth')
 	mapping={k:v for k,v in zip(model_state.keys(),model.state_dict().keys())}
+
 	mapped_model_state=OrderedDict( [(mapping[k],v) for k ,v in model_state.items()])
-	model.load_state_dict(mapped_model_state,strict=False)
+	old_state_dict=model.state_dict()
+	for k in old_state_dict.keys():
+		if old_state_dict[k].shape==mapped_model_state[k].shape:
+			old_state_dict[k]=mapped_model_state[k]
+		else:
+			print("mismatch: {}".format(k))
+	old_state_dict.update()
+	model.load_state_dict(old_state_dict,strict=False)
 	print('Loaded pretrained weights for {}'.format(model_name))
 
 	return model

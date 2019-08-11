@@ -23,7 +23,7 @@ def restore(args,model,optimizer,train=True):
 	if os.path.isfile(args.resume):
 		snapshot=args.resume
 	else:
-		restore_dir=args.logdir
+		restore_dir=args.ckpdir
 		filelist=os.listdir(restore_dir)
 		filelist=[x for x in filelist if os.path.isfile(os.path.join(restore_dir,x)) and x.endswith('pth')]
 		if filelist>0:
